@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ostad_sendbox_apimanager
+
+server:
+  port: 8443
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+downstream:
+  rapid:
+    host: google-translate1.p.rapidapi.com
+    key: 605b57e0bcmshd0886f7b374d8bap1c6921jsnddf8d33cbffb
+  geo:
+    host: api.ipgeolocation.io
+    key: da8d71b471f641bd887ba6573b8df275
