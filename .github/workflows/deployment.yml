@@ -5,12 +5,10 @@ on:
     branches:
       - main
 
-# Define global env variables accessible inside steps
 env:
   IMAGE_NAME: ms-sandbox-service
 
 jobs:
-
   checkout:
     runs-on: [self-hosted, sendbox]
     outputs:
@@ -20,10 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get short commit SHA
-        id: get_sha
+      - id: get_sha
+        name: Get short commit SHA
         run: echo "::set-output name=commit_sha::$(git rev-parse --short HEAD)"
-
 
   build:
     runs-on: [self-hosted, sendbox]
@@ -46,11 +43,9 @@ jobs:
       - name: Build Java application with Maven
         run: mvn clean package --file pom.xml
 
-
   docker-build:
     runs-on: [self-hosted, sendbox]
     needs: build
-    # Do NOT use env at job level with ${{ env.IMAGE_NAME }} — instead use inside steps
 
     steps:
       - name: Checkout code
@@ -63,10 +58,11 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA .
-          docker tag ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:latest
-
+          echo "Building image with tag: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA"
+          docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA .
+          docker tag $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA $DOCKER_USERNAME/$IMAGE_NAME:latest
 
   docker-push:
     runs-on: [self-hosted, sendbox]
@@ -80,6 +76,8 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA
-          docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:latest
+          echo "Pushing images with tags: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA and latest"
+          docker push $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA
+          docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
