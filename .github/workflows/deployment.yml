@@ -24,7 +24,7 @@ jobs:
         run: echo "commit_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
 
-  build-and-push:
+  build-and-push-repo:
     runs-on: [self-hosted, sendbox]
     needs: checkout
 
