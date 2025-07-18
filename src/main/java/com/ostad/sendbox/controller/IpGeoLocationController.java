@@ -5,6 +5,7 @@ import com.ostad.sendbox.payload.IpGeoLocationResponse;
 import com.ostad.sendbox.service.IpGeoLocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ public class IpGeoLocationController {
     @Autowired
     IpGeoLocationService ipGeoLocationService;
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/location")
     public ResponseEntity<Object> getGeoLocation(){
         Map<String, Object> resData = new HashMap<>();

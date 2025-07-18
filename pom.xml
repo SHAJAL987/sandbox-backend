@@ -62,7 +62,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
-        <finalName>ms-sandbox-services</finalName>
+        <finalName>ms-sandbox-service</finalName>
     </build>
 
 </project>
