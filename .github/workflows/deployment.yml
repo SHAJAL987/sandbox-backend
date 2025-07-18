@@ -3,11 +3,11 @@ name: Sandbox CICD Pipeline
 on:
   push:
     branches:
-      - main  # adjust as needed
+      - main
 
 jobs:
   build-and-push:
-    runs-on: sendbox  # use available GitHub runner
+    runs-on: [self-hosted, sendbox]  # self-hosted runner with 'sendbox' label
 
     env:
       IMAGE_NAME: ms-sandbox-service
@@ -21,6 +21,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Verify Maven is installed
+        run: |
+          mvn -v || (echo "Maven is not installed!" && exit 1)
 
       - name: Set environment variables
         run: |
