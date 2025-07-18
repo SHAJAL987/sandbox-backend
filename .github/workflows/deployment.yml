@@ -9,6 +9,7 @@ env:
   IMAGE_NAME: ms-sandbox-service
 
 jobs:
+
   checkout:
     runs-on: [self-hosted, sendbox]
     outputs:
@@ -20,7 +21,8 @@ jobs:
 
       - id: get_sha
         name: Get short commit SHA
-        run: echo "::set-output name=commit_sha::$(git rev-parse --short HEAD)"
+        run: echo "commit_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
 
   build:
     runs-on: [self-hosted, sendbox]
@@ -43,6 +45,7 @@ jobs:
       - name: Build Java application with Maven
         run: mvn clean package --file pom.xml
 
+
   docker-build:
     runs-on: [self-hosted, sendbox]
     needs: build
@@ -60,9 +63,10 @@ jobs:
           GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          echo "Building image with tag: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA"
+          echo "Building image: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA"
           docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA .
           docker tag $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA $DOCKER_USERNAME/$IMAGE_NAME:latest
+
 
   docker-push:
     runs-on: [self-hosted, sendbox]
@@ -78,6 +82,6 @@ jobs:
           GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          echo "Pushing images with tags: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA and latest"
+          echo "Pushing images: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA and latest"
           docker push $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA
           docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
