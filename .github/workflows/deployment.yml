@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+# Define global env variables accessible inside steps
 env:
   IMAGE_NAME: ms-sandbox-service
 
@@ -27,8 +28,6 @@ jobs:
   build:
     runs-on: [self-hosted, sendbox]
     needs: checkout
-    outputs:
-      build_artifact: ${{ steps.maven_build.outputs.artifact_path }}
 
     steps:
       - name: Checkout code
@@ -45,18 +44,14 @@ jobs:
           mvn -v || (echo "Maven is not installed!" && exit 1)
 
       - name: Build Java application with Maven
-        id: maven_build
-        run: |
-          mvn clean package --file pom.xml
-          echo "::set-output name=artifact_path::target/ms-sandbox-service.jar" # optional if you want to pass artifact info
+        run: mvn clean package --file pom.xml
 
 
   docker-build:
     runs-on: [self-hosted, sendbox]
     needs: build
-    env:
-      GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
-      IMAGE_NAME: ${{ env.IMAGE_NAME }}
+    # Do NOT use env at job level with ${{ env.IMAGE_NAME }} — instead use inside steps
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -65,22 +60,26 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }} .
-          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }} ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:latest
 
 
   docker-push:
     runs-on: [self-hosted, sendbox]
     needs: docker-build
-    env:
-      GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
-      IMAGE_NAME: ${{ env.IMAGE_NAME }}
+
     steps:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker images
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$GIT_SHA
+          docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:latest
