@@ -5,12 +5,30 @@ on:
     branches:
       - main
 
-jobs:
-  build-and-push:
-    runs-on: [self-hosted, sendbox]  # self-hosted runner with 'sendbox' label
+env:
+  IMAGE_NAME: ms-sandbox-service
 
-    env:
-      IMAGE_NAME: ms-sandbox-service
+jobs:
+
+  checkout:
+    runs-on: [self-hosted, sendbox]
+    outputs:
+      commit_sha: ${{ steps.get_sha.outputs.commit_sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get short commit SHA
+        id: get_sha
+        run: echo "::set-output name=commit_sha::$(git rev-parse --short HEAD)"
+
+
+  build:
+    runs-on: [self-hosted, sendbox]
+    needs: checkout
+    outputs:
+      build_artifact: ${{ steps.maven_build.outputs.artifact_path }}
 
     steps:
       - name: Checkout code
@@ -26,13 +44,22 @@ jobs:
         run: |
           mvn -v || (echo "Maven is not installed!" && exit 1)
 
-      - name: Set environment variables
-        run: |
-          echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
       - name: Build Java application with Maven
-        run: mvn clean package --file pom.xml
+        id: maven_build
+        run: |
+          mvn clean package --file pom.xml
+          echo "::set-output name=artifact_path::target/ms-sandbox-service.jar" # optional if you want to pass artifact info
+
+
+  docker-build:
+    runs-on: [self-hosted, sendbox]
+    needs: build
+    env:
+      GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
+      IMAGE_NAME: ${{ env.IMAGE_NAME }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -41,6 +68,17 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }} .
           docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }} ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+
+  docker-push:
+    runs-on: [self-hosted, sendbox]
+    needs: docker-build
+    env:
+      GIT_SHA: ${{ needs.checkout.outputs.commit_sha }}
+      IMAGE_NAME: ${{ env.IMAGE_NAME }}
+    steps:
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker images
         run: |
