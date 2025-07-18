@@ -7,15 +7,16 @@ EXPOSE 8443
 # Set working directory
 WORKDIR /app
 
-# Use root to set up directories
+# Use root to set up directories and permissions
 USER root
 
 # Copy the application JAR file
 COPY target/ms-sandbox-service.jar ms-sandbox-service.jar
 
-# Create necessary folders and assign ownership
+# Create directories and user/group safely
 RUN mkdir -p /app/cert/ /app/serviceLog/ && \
-    groupadd -r appuser && useradd -r -g appuser ubuntu && \
+    groupadd -f appuser || true && \
+    id -u ubuntu >/dev/null 2>&1 || useradd -r -g appuser ubuntu && \
     chown -R ubuntu:appuser /app
 
 # Switch to non-root user
