@@ -24,7 +24,7 @@ public class IpGeoLocationController {
     public ResponseEntity<Object> getGeoLocation(){
         Map<String, Object> resData = new HashMap<>();
         IpGeoLocationResponse response = ipGeoLocationService.getGeoLocation();
-        resData.put("data",resData);
+        resData.put("data",response);
         if (resData.put("data",resData) != null){
             return ResponseHandler.responseBuilder("Operation Successful", "ERR-100", response);
         }else {
