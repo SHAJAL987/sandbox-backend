@@ -1,0 +1,21 @@
+services:
+  ms-sendbox-service:
+    image: shajaldev0/ms-sandbox-service:latest
+    ports:
+      - 8443:8443
+    volumes:
+      - type: bind
+        source: ./serviceLog
+        target: /app/serviceLog
+      - type: bind
+        source: ./files
+        target: /app/files
+      - type: bind
+        source: ./cert
+        target: /app/cert
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    external: true

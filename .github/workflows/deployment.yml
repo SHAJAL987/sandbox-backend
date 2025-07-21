@@ -73,3 +73,28 @@ jobs:
           echo "Pushing images: $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA and latest"
           docker push $DOCKER_USERNAME/$IMAGE_NAME:$GIT_SHA
           docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+
+  deploy-to-ec2:
+    name: Deploy to EC2
+    runs-on: [ self-hosted, sendbox ]
+    needs: [ build-and-push-repo ]
+
+    steps:
+      - name: Deploy on EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ec2-13-53-131-172.eu-north-1.compute.amazonaws.com
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Navigating to project directory..."
+            cd /home/ubuntu/sendbox-service
+            
+            echo "Stopping existing container..."
+            docker compose down
+            
+            echo "Pulling latest image..."
+            docker pull shajaldev0/ms-sandbox-service:latest
+            
+            echo "Starting container..."
+            docker compose up -d
