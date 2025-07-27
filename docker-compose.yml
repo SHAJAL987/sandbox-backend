@@ -13,9 +13,3 @@ services:
       - type: bind
         source: ./cert
         target: /app/cert
-    networks:
-      - dev-network
-
-networks:
-  dev-network:
-    external: true

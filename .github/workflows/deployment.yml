@@ -76,24 +76,24 @@ jobs:
           docker push "$IMAGE_TAG"
           docker push "$LATEST_TAG"
 
-  deploy-to-ec2:
-    name: Deploy to EC2 Docker Container
-    runs-on: [self-hosted, sandbox]
-    needs: [build-and-push-repo]
-
-    steps:
-      - name: Deploy via SSH to EC2
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ec2-13-53-131-172.eu-north-1.compute.amazonaws.com
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "Pulling latest Docker image..."
-            docker pull shajaldev0/ms-sandbox-service:latest
-
-            echo "Stopping existing containers..."
-            docker compose down || true
-
-            echo "Starting with Docker Compose..."
-            docker compose up -d
+#  deploy-to-ec2:
+#    name: Deploy to EC2 Docker Container
+#    runs-on: [self-hosted, sandbox]
+#    needs: [build-and-push-repo]
+#
+#    steps:
+#      - name: Deploy via SSH to EC2
+#        uses: appleboy/ssh-action@v1.0.0
+#        with:
+#          host: ec2-13-53-131-172.eu-north-1.compute.amazonaws.com
+#          username: ubuntu
+#          key: ${{ secrets.EC2_SSH_KEY }}
+#          script: |
+#            echo "Pulling latest Docker image..."
+#            docker pull shajaldev0/ms-sandbox-service:latest
+#
+#            echo "Stopping existing containers..."
+#            docker compose down || true
+#
+#            echo "Starting with Docker Compose..."
+#            docker compose up -d
