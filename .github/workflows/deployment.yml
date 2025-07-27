@@ -75,7 +75,7 @@ jobs:
           docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
 
   deploy-to-ec2:
-    name: Deploy to EC2
+    name: Deploy to EC2 using existing docker-compose.yml
     runs-on: [ self-hosted, sandbox ]
     needs: [ build-and-push-repo ]
 
@@ -87,14 +87,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "Navigating to project directory..."
-            cd /home/ubuntu/sendbox-service
-            
-            echo "Stopping existing container..."
-            docker compose down
-            
-            echo "Pulling latest image..."
+            echo "Pulling latest Docker image..."
             docker pull shajaldev0/ms-sandbox-service:latest
-            
-            echo "Starting container..."
+
+            echo "Stopping and removing any existing containers..."
+            docker compose down || true
+
+            echo "Starting container with existing docker-compose.yml..."
             docker compose up -d
