@@ -75,7 +75,7 @@ jobs:
           docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
 
   deploy-to-ec2:
-    name: Deploy to EC2 using existing docker-compose.yml
+    name: Deploy to EC2 Docker Container
     runs-on: [ self-hosted, sandbox ]
     needs: [ build-and-push-repo ]
 
