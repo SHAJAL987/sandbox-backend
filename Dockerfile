@@ -2,7 +2,7 @@
 FROM eclipse-temurin:17-jdk
 
 # Expose application port
-EXPOSE 8443
+EXPOSE 8080
 
 # Set working directory
 WORKDIR /app

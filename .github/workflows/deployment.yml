@@ -11,7 +11,7 @@ env:
 jobs:
 
   checkout:
-    runs-on: [self-hosted, sendbox]
+    runs-on: [self-hosted, sandbox]
     outputs:
       commit_sha: ${{ steps.get_sha.outputs.commit_sha }}
 
@@ -24,7 +24,7 @@ jobs:
         run: echo "commit_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
   integration-tests:
-    runs-on: [self-hosted, sendbox]
+    runs-on: [self-hosted, sandbox]
     needs: checkout
 
     steps:
@@ -41,7 +41,7 @@ jobs:
         run: mvn clean verify -Pintegration-test
 
   build-and-push-repo:
-    runs-on: [self-hosted, sendbox]
+    runs-on: [self-hosted, sandbox]
     needs: [checkout, integration-tests]
 
     steps:
@@ -76,7 +76,7 @@ jobs:
 
   deploy-to-ec2:
     name: Deploy to EC2
-    runs-on: [ self-hosted, sendbox ]
+    runs-on: [ self-hosted, sandbox ]
     needs: [ build-and-push-repo ]
 
     steps:

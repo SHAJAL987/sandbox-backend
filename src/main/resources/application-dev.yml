@@ -3,7 +3,7 @@ spring:
     name: ostad_sendbox_apimanager
 
 server:
-  port: 8443
+  port: 8080
 
 management:
   endpoints:

@@ -2,7 +2,7 @@ services:
   ms-sendbox-service:
     image: shajaldev0/ms-sandbox-service:latest
     ports:
-      - 8443:8443
+      - 8080:8080
     volumes:
       - type: bind
         source: ./serviceLog
